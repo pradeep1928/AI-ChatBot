@@ -11,6 +11,6 @@ app.use(express.json())
 // remove it in production 
 app.use(morgan('dev'))
 
-app.use('/app/v1', appRouter)
+app.use('/api/v1', appRouter)
 
 export default app
