@@ -1,6 +1,8 @@
 import { compare, hash } from "bcrypt";
 import User from "../models/userModel.js";
 import { Request, Response, NextFunction } from "express";
+import { createToken } from "../utils/tokenManager.js";
+import { COOKIE_NAME } from "../utils/constants.js";
 
 export const getAllUsers = async (
   req: Request,
@@ -29,6 +31,27 @@ export const userSignUp = async (
     const hashPassword = await hash(password, 10);
     const user = new User({ name, email, password: hashPassword });
     await user.save();
+    // clear cookie, create token, and save cookie again with new token
+    res.clearCookie(COOKIE_NAME, {
+      path: "/",
+      domain: "localhost",
+      httpOnly: true,
+      signed: true,
+    });
+
+    const token = createToken(user._id.toString(), user.email, "7d");
+
+    const expiryTime = new Date();
+    expiryTime.setDate(expiryTime.getDate() + 7);
+
+    res.cookie(COOKIE_NAME, token, {
+      path: "/",
+      domain: "localhost",
+      expires: expiryTime,
+      httpOnly: true,
+      signed: true,
+    });
+
     return res.status(201).json({ message: "OK", id: user._id });
   } catch (error) {
     return res.status(500).json({ message: "Error", cause: error.message });
@@ -52,7 +75,32 @@ export const userLogin = async (
     if (!isPasswordCorrect) {
       return res.status(403).json({ message: "Password is incorrect" });
     }
-    return res.status(200).json({ message: "user login successfull", id: user._id });
+
+    // clear cookie, create token, and save cookie again with new token
+    res.clearCookie(COOKIE_NAME, {
+      path: "/",
+      domain: "localhost",
+      httpOnly: true,
+      signed: true,
+    });
+
+    const token = createToken(user._id.toString(), user.email, "7d");
+
+    const expiryTime = new Date();
+    expiryTime.setDate(expiryTime.getDate() + 7);
+
+    res.cookie(COOKIE_NAME, token, {
+      path: "/",
+      domain: "localhost",
+      expires: expiryTime,
+      httpOnly: true,
+      signed: true,
+    });
+
+    // Send response
+    return res
+      .status(200)
+      .json({ message: "user login successfull", id: user._id });
   } catch (error) {
     return res.status(500).json({ message: "Error", cause: error.message });
   }
