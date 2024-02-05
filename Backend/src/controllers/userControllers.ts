@@ -100,13 +100,39 @@ export const userLogin = async (
     });
 
     // Send response
-    return res
-      .status(200)
-      .json({
-        message: "user login successfull",
-        name: user.name,
-        email: user.email,
-      });
+    return res.status(200).json({
+      message: "user login successfull",
+      name: user.name,
+      email: user.email,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
+
+export const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "User is not registered or Token not working" });
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return res.status(401).json({ message: "Authentication failed" });
+    }
+
+    // Send response
+    return res.status(200).json({
+      message: "user login successfull",
+      name: user.name,
+      email: user.email,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Error", cause: error.message });
   }
