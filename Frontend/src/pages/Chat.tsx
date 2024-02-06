@@ -1,46 +1,27 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Avatar, Box, Typography, Button, IconButton } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import red from "@mui/material/colors/red";
 import ChatItem from "../components/chat/ChatItem";
 import { IoMdSend } from "react-icons/io"
 
-const chatMessages = [
-  { role: "user", content: "Hello, AI! What's the weather like today?" },
-  {
-    role: "assistant",
-    content:
-      "Hi there! I can help you with that. Please provide me with your location.",
-  },
-  { role: "user", content: "I'm in New York City." },
-  {
-    role: "assistant",
-    content: "Great! Let me check the weather for you. One moment, please.",
-  },
-  {
-    role: "assistant",
-    content: "The current weather in New York City is 75°F with a clear sky.",
-  },
-  { role: "user", content: "Thanks! What about the upcoming weekend?" },
-  {
-    role: "assistant",
-    content: "Sure thing! Let me fetch the weekend forecast for you.",
-  },
-  {
-    role: "assistant",
-    content:
-      "It looks like there will be some scattered showers on Saturday, but Sunday should be mostly sunny with a high of 78°F.",
-  },
-  { role: "user", content: "Awesome! Anything else I should know?" },
-  {
-    role: "assistant",
-    content:
-      "No problem! If you have any more questions or need assistance, feel free to ask. I'm here to help!",
-  },
-];
+type Message = {
+  role: 'user' | 'assistant',
+  content: string
+}
 
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const [chatMessages, setChatMessages] = useState<Message[]>([])
+  const handleSubmit = async () => {
+    const content = inputRef.current?.value as string
+    if (inputRef && inputRef.current) {
+      inputRef.current.value = ""
+    }
+    const newMessage: Message = {role: 'user', content} 
+    setChatMessages((prev) => [...prev, newMessage])
+
+  }
   const auth = useAuth();
   return (
     <Box
@@ -175,7 +156,7 @@ const Chat = () => {
               fontSize: "20px",
             }}
           />
-          <IconButton sx={{ ml: 'auto', color: 'white' }}><IoMdSend /></IconButton>
+          <IconButton onClick={handleSubmit} sx={{ ml: 'auto', color: 'white' }}><IoMdSend /></IconButton>
         </div>
       </Box>
     </Box>
