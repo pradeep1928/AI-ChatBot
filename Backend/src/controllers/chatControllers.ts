@@ -25,7 +25,7 @@ export const generateChatCompletion = async (
     user.chats.push({ content: message, role: "user" });
 
     const config = configureOpenai();
-    const openai = new OpenAIApi();
+    const openai = new OpenAIApi(config);
     const chatResponse = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: chats,
