@@ -53,7 +53,7 @@ const ChatItem = ({
                     return isCodeBlock(block) ?
                         <SyntaxHighlighter key={index}
                             style={coldarkDark} language="javascript">{block}</SyntaxHighlighter> :
-                        <Typography fontSize={'20px'}>{block}</Typography>
+                        <Typography key={index} fontSize={'20px'}>{block}</Typography>
                 })}
             </Box>
         </Box>
