@@ -110,7 +110,6 @@ export const userLogin = async (
   }
 };
 
-
 export const verifyUser = async (
   req: Request,
   res: Response,
@@ -129,9 +128,42 @@ export const verifyUser = async (
 
     // Send response
     return res.status(200).json({
-      message: "user login successfull",
+      message: "user verified successfull",
       name: user.name,
       email: user.email,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error", cause: error.message });
+  }
+};
+
+export const userLogout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "User is not registered or Token not working" });
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return res.status(401).json({ message: "Authentication failed" });
+    }
+
+    // clear cookie, create token, and save cookie again with new token
+    res.clearCookie(COOKIE_NAME, {
+      path: "/",
+      domain: "localhost",
+      httpOnly: true,
+      signed: true,
+    });
+
+    // Send response
+    return res.status(200).json({
+      message: "user logout successfull",
     });
   } catch (error) {
     return res.status(500).json({ message: "Error", cause: error.message });
