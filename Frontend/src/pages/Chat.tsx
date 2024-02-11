@@ -1,11 +1,13 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Avatar, Box, Typography, Button, IconButton } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import red from "@mui/material/colors/red";
-import ChatItem from "../components/chat/ChatItem";
 import { IoMdSend } from "react-icons/io"
-import { getUserChats, sendChatRequest } from "../helper/apiCommunicator";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom"
+
+import ChatItem from "../components/chat/ChatItem";
+import { deleteUserChats, getUserChats, sendChatRequest } from "../helper/apiCommunicator";
 
 type Message = {
   role: 'user' | 'assistant',
@@ -14,35 +16,55 @@ type Message = {
 
 const Chat = () => {
   const auth = useAuth();
+  const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [chatMessages, setChatMessages] = useState<Message[]>([])
+
   const handleSubmit = async () => {
     const content = inputRef.current?.value as string
     console.log("🚀 ~ handleSubmit ~ content:", content)
     if (inputRef && inputRef.current) {
       inputRef.current.value = ""
     }
-    const newMessage: Message = {role: 'user', content} 
+    const newMessage: Message = { role: 'user', content }
     setChatMessages((prev) => [...prev, newMessage])
     const chatData = await sendChatRequest(content)
     setChatMessages([...chatData.chats])
   }
 
+  const handleDeleteChats = async () => {
+    try {
+      toast.loading("Deleting chats", { id: "deleteChats" })
+      await deleteUserChats();
+      setChatMessages([]);
+      toast.success("Deleted Chats Successfully", { id: "deleteChats" })
+    } catch (error) {
+      console.log(error);
+      toast.error("Deleting chats failed", { id: "deleteChats" })
+    }
+  }
+
+  useEffect(() => {
+    if (!auth?.user) {
+      return navigate("/login")
+    }
+  }, [auth, navigate])
+
   useLayoutEffect(() => {
     if (auth?.isLoggedIn && auth?.user) {
       console.log('------------- userlayout ---------')
-      toast.loading("Loading Chats", {id: "loadChats"})
+      toast.loading("Loading Chats", { id: "loadChats" })
       getUserChats().then((data) => {
         console.log("------------data --->", data)
         setChatMessages([...data.chats])
-        toast.success("Chats loaded successfully", {id: "loadChats"})
+        toast.success("Chats loaded successfully", { id: "loadChats" })
       }).catch((err) => {
         console.log(err)
-        toast.error("Unable to load chats", {id: "loadChats"})
+        toast.error("Unable to load chats", { id: "loadChats" })
       })
     }
   }, [auth])
-  
+
   return (
     <Box
       sx={{
@@ -94,6 +116,7 @@ const Chat = () => {
             information.
           </Typography>
           <Button
+            onClick={handleDeleteChats}
             sx={{
               width: "200px",
               my: "auto",
